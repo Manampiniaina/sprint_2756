@@ -1,17 +1,60 @@
 package com.sprint.framework;
 
 import java.io.*;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
 
-@WebServlet(name = "frontController", value = "/")
+import com.sprint.utils.FrontUtil;
+import jakarta.servlet.http.*;
+
 public class FrontController extends HttpServlet {
-    public void processRequest (HttpServletRequest request,HttpServletResponse response)throws IOException{
-        PrintWriter out = response.getWriter();
-        String url = request.getRequestURI();
-        out.println("you are in :"+ url );
+    private boolean scanController = false ;
+    private Class<?>[] controllers;
+
+    private boolean isScanController() {
+        return scanController;
     }
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    private Class<?>[] getControllers() {
+        return controllers;
+    }
+
+    private void setControllers(Class<?>[] controllers) {
+        this.controllers = controllers;
+    }
+
+    private void setScanController() {
+        this.scanController = true;
+    }
+
+    private void initControllers(){
+        if(!isScanController()){
+            String packagePath=this.getInitParameter("packageControllers");
+            Class<?>[] classes= FrontUtil.getListControllers(packagePath);
+            setControllers(classes);
+            setScanController();
+        }
+
+    }
+    private void printControllers(HttpServletResponse response) throws IOException{
+        PrintWriter out = response.getWriter();
+        if(getControllers().length >0 ){
+            out.println("list of controllers : ");
+            for (int i = 0; i <getControllers().length ; i++) {
+                out.println(getControllers()[i].getName());
+            }
+        }
+        else{
+            out.println("No controllers found");
+        }
+    }
+
+    private void processRequest(HttpServletRequest request, HttpServletResponse response)throws IOException{
+        initControllers();
+        printControllers(response);
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         processRequest(request, response);
     }
+
+
 }
