@@ -14,7 +14,6 @@ public class FrontUtil {
     public static Class<?>[] getListControllers(String packagePath ){
         Reflections reflect = new Reflections(packagePath);
         Set<Class<?>> classes= reflect.getTypesAnnotatedWith(AnnotationController.class);
-//        System.out.println("controllers : "+ classes.toArray(new Class<?>[0]).length ) ;
         return classes.toArray(new Class<?>[0]);
     }
 
@@ -25,12 +24,10 @@ public class FrontUtil {
             AnnotationController annotationController = controllers[i].getAnnotation(AnnotationController.class);
             Reflections reflect = new Reflections(controllers[i].getName() , new MethodAnnotationsScanner());
             Method[] methods = reflect.getMethodsAnnotatedWith(Get.class).toArray(new Method[0]);
-//            System.out.println("methods in "+controllers[i].getName()+":"+ methods.length);
             for (Method method : methods) {
                 Get get = method.getAnnotation(Get.class);
                 String url = annotationController.value() + "/" + get.value();
                 Mapping map = new Mapping(controllers[i].getName(), method.getName());
-//                System.out.println(url);
                 mapping.put(url, map);
             }
         }
@@ -57,9 +54,4 @@ public class FrontUtil {
         }
         return url;
     }
-
-
-
-
-
 }
