@@ -1,6 +1,7 @@
 package com.sprint.framework;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 import com.sprint.objects.Mapping;
@@ -45,19 +46,28 @@ public class FrontController extends HttpServlet {
         }
     }
 
-    public void processRequest(HttpServletRequest request, HttpServletResponse response)throws IOException{
+    public void processRequest(HttpServletRequest request, HttpServletResponse response)throws
+            IOException,ClassNotFoundException ,
+            NoSuchMethodException , InstantiationException ,
+            IllegalAccessException , InvocationTargetException {
         PrintWriter out = response.getWriter();
         this.initMapping(request);
         if(this.getMapping()!=null){
-            out.println("You are in : controller->" +this.getMapping().getControllerName() + " / method->" + this.getMapping().getMethodName());
+           Object obj=this.getMapping().excecute();
+           String output=(String)obj;
+           out.println("output->" + output);
         }
         else{
             out.println("error 404 , url not found . ");
         }
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        this.processRequest(request, response);
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            this.processRequest(request, response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
