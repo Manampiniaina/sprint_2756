@@ -1,60 +1,73 @@
 package com.sprint.framework;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 
+import com.sprint.objects.Mapping;
 import com.sprint.utils.FrontUtil;
 import jakarta.servlet.http.*;
 
 public class FrontController extends HttpServlet {
-    private boolean scanController = false ;
-    private Class<?>[] controllers;
+    private HashMap<String , Mapping > allMapping;
+    private Mapping mapping;
 
-    private boolean isScanController() {
-        return scanController;
+    public Mapping getMapping() {
+        return mapping;
     }
 
-    private Class<?>[] getControllers() {
-        return controllers;
+    public void setMapping(Mapping mapping) {
+        this.mapping = mapping;
     }
 
-    private void setControllers(Class<?>[] controllers) {
-        this.controllers = controllers;
+    public HashMap<String, Mapping> getAllMapping() {
+        return allMapping;
     }
 
-    private void setScanController() {
-        this.scanController = true;
+    public void setAllMapping(HashMap<String, Mapping> allMapping) {
+        this.allMapping = allMapping;
     }
 
-    private void initControllers(){
-        if(!isScanController()){
-            String packagePath=this.getInitParameter("packageControllers");
-            Class<?>[] classes= FrontUtil.getListControllers(packagePath);
-            setControllers(classes);
-            setScanController();
-        }
-
+    public void init(){
+        String packagePath=this.getInitParameter("packageControllers");
+        Class<?>[] controllers= FrontUtil.getListControllers(packagePath);
+        HashMap<String ,  Mapping> allMapping= FrontUtil.getAllMapping(controllers);
+        setAllMapping(allMapping);
     }
-    private void printControllers(HttpServletResponse response) throws IOException{
-        PrintWriter out = response.getWriter();
-        if(getControllers().length >0 ){
-            out.println("list of controllers : ");
-            for (int i = 0; i <getControllers().length ; i++) {
-                out.println(getControllers()[i].getName());
+
+    public void initMapping(HttpServletRequest req){
+        if(!getAllMapping().isEmpty()){
+            String url = req.getRequestURI();
+            url=FrontUtil.getMetaUrl(url);
+            Mapping map = FrontUtil.getMapping(url , this.getAllMapping());
+            if(map!=null){
+                setMapping(map);
             }
         }
+    }
+
+    public void processRequest(HttpServletRequest request, HttpServletResponse response)throws
+            IOException,ClassNotFoundException ,
+            NoSuchMethodException , InstantiationException ,
+            IllegalAccessException , InvocationTargetException {
+        PrintWriter out = response.getWriter();
+        this.initMapping(request);
+        if(this.getMapping()!=null){
+           Object obj=this.getMapping().excecute();
+           String output=(String)obj;
+           out.println("output->" + output);
+        }
         else{
-            out.println("No controllers found");
+            out.println("error 404 , url not found . ");
         }
     }
 
-    private void processRequest(HttpServletRequest request, HttpServletResponse response)throws IOException{
-        initControllers();
-        printControllers(response);
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            this.processRequest(request, response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        processRequest(request, response);
-    }
-
 
 }
