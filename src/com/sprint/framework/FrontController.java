@@ -1,11 +1,13 @@
 package com.sprint.framework;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.sprint.objects.Mapping;
+import com.sprint.objects.ModelView;
 import com.sprint.utils.FrontUtil;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.*;
 
 public class FrontController extends HttpServlet {
@@ -40,34 +42,53 @@ public class FrontController extends HttpServlet {
             String url = req.getRequestURI();
             url=FrontUtil.getMetaUrl(url);
             Mapping map = FrontUtil.getMapping(url , this.getAllMapping());
-            if(map!=null){
-                setMapping(map);
+            setMapping(map);
+
+        }
+    }
+    public void getData(  HttpServletRequest req , HttpServletResponse res) throws IOException {
+        PrintWriter out = res.getWriter();
+        if(this.getMapping()!=null) {
+            try{
+                Object obj = this.getMapping().excecute();
+                if (obj.getClass().getName().equals("java.lang.String")) {
+                    out.println( "data:"+(String)obj);
+                }
+                else if (obj.getClass().getName().equals("com.sprint.objects.ModelView")){
+                    ModelView mv = (ModelView)obj;
+                    for ( Map.Entry<String, Object> entry :   mv.getData().entrySet()) {
+                        req.setAttribute(entry.getKey(), entry.getValue());
+                    }
+
+                    String urlNow=FrontUtil.getMetaUrl(req.getRequestURI());
+                    String add=FrontUtil.getAddDispactcher(urlNow);
+
+                    RequestDispatcher dispatcher = req.getRequestDispatcher( add + mv.getUrl());
+
+                    dispatcher.forward(req, res);
+                }
+                else{
+                    out.println("return type not found");
+                }
+            } catch (Exception e) {
+                System.out.println(e.getCause().getMessage());
             }
+        }else{
+            out.println("error 404 : page not found");
         }
     }
-
-    public void processRequest(HttpServletRequest request, HttpServletResponse response)throws
-            IOException,ClassNotFoundException ,
-            NoSuchMethodException , InstantiationException ,
-            IllegalAccessException , InvocationTargetException {
-        PrintWriter out = response.getWriter();
+    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws
+            IOException{
         this.initMapping(request);
-        if(this.getMapping()!=null){
-           Object obj=this.getMapping().excecute();
-           String output=(String)obj;
-           out.println("output->" + output);
-        }
-        else{
-            out.println("error 404 , url not found . ");
-        }
+        this.getData(request , response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) {
+    @Override
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            this.processRequest(request, response);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            this.processRequest(req, resp);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
         }
     }
-
 }

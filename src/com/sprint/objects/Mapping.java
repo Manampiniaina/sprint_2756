@@ -48,6 +48,6 @@ public class Mapping {
             InvocationTargetException {
         Object obj=this.getClazz().newInstance();
         Method method = this.getMethod();
-        return method.invoke(obj) ;
+        return method.invoke(obj  ) ;
     }
 }
