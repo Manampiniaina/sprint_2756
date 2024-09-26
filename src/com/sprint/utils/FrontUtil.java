@@ -16,18 +16,15 @@ public class FrontUtil {
         Set<Class<?>> classes= reflect.getTypesAnnotatedWith(AnnotationController.class);
         return classes.toArray(new Class<?>[0]);
     }
-
-   
     public static HashMap<String , Mapping> getAllMapping(Class<?>[] controllers){
         HashMap<String , Mapping> mapping = new HashMap<>();
-        for (int i = 0; i < controllers.length; i++) {
-            AnnotationController annotationController = controllers[i].getAnnotation(AnnotationController.class);
-            Reflections reflect = new Reflections(controllers[i].getName() , new MethodAnnotationsScanner());
+        for (Class<?> controller : controllers) {
+            Reflections reflect = new Reflections(controller.getName(), new MethodAnnotationsScanner());
             Method[] methods = reflect.getMethodsAnnotatedWith(Get.class).toArray(new Method[0]);
             for (Method method : methods) {
                 Get get = method.getAnnotation(Get.class);
-                String url = annotationController.value() + "/" + get.value();
-                Mapping map = new Mapping(controllers[i].getName(), method.getName());
+                String url = get.value();
+                Mapping map = new Mapping(controller.getName(), method.getName());
                 mapping.put(url, map);
             }
         }
@@ -45,13 +42,33 @@ public class FrontUtil {
         }
         return null;
     }
+
+    public static int countChar(char counting , String str){
+        int count=0;
+        for(int i =0;i<str.length();i++){
+            if (str.charAt(i)==counting){
+                count++;
+            }
+        }
+        return count;
+    }
+    public static String getAddDispactcher(String url){
+        int count=FrontUtil.countChar('/', url) ;
+        String addDispat="";
+        for (int i = 0; i < count; i++) {
+            addDispat+="../";
+        }
+        return (addDispat);
+    }
+
     public static String getMetaUrl(String url){
-        String[] splits=url.split("/");
+        String[] splits=url.split("/" , 3);
         if(splits.length>2){
-            return  splits[2]+"/"+splits[3];
+            return  splits[2];
         } else if (splits.length==2) {
             return "/";
         }
         return url;
     }
+
 }
