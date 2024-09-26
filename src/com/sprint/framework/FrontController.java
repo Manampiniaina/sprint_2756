@@ -11,6 +11,7 @@ import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.*;
 
 public class FrontController extends HttpServlet {
+    private boolean init = false;
     private HashMap<String , Mapping > allMapping;
     private Mapping mapping;
 
@@ -30,11 +31,16 @@ public class FrontController extends HttpServlet {
         this.allMapping = allMapping;
     }
 
-    public void init(){
+    public void initPackage() throws Exception{
         String packagePath=this.getInitParameter("packageControllers");
-        Class<?>[] controllers= FrontUtil.getListControllers(packagePath);
-        HashMap<String ,  Mapping> allMapping= FrontUtil.getAllMapping(controllers);
-        setAllMapping(allMapping);
+        if(packagePath.isEmpty()){
+            throw new Exception("ERROR 1:Missing package in the 'webapps/WEB-INF/web.xml',in the init param->'packageControllers'");
+        }
+        else{
+            Class<?>[] controllers= FrontUtil.getListControllers(packagePath);
+            HashMap<String ,  Mapping> allMapping= FrontUtil.getAllMapping(controllers);
+            setAllMapping(allMapping);
+        }
     }
 
     public void initMapping(HttpServletRequest req){
@@ -43,13 +49,11 @@ public class FrontController extends HttpServlet {
             url=FrontUtil.getMetaUrl(url);
             Mapping map = FrontUtil.getMapping(url , this.getAllMapping());
             setMapping(map);
-
         }
     }
-    public void getData(  HttpServletRequest req , HttpServletResponse res) throws IOException {
+    public void getData(  HttpServletRequest req , HttpServletResponse res) throws Exception {
         PrintWriter out = res.getWriter();
         if(this.getMapping()!=null) {
-            try{
                 Object obj = this.getMapping().excecute();
                 if (obj.getClass().getName().equals("java.lang.String")) {
                     out.println( "data:"+(String)obj);
@@ -68,27 +72,29 @@ public class FrontController extends HttpServlet {
                     dispatcher.forward(req, res);
                 }
                 else{
-                    out.println("return type not found");
+                    throw new Exception("ERROR 3: return type not found , the type may a java.lang.String or a com.objects.ModelView ");
                 }
-            } catch (Exception e) {
-                System.out.println(e.getCause().getMessage());
-            }
+
         }else{
-            out.println("error 404 : page not found");
+           throw new Exception("ERROR 404 : page not found");
         }
     }
-    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws
-            IOException{
+    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        if(!this.init){
+            this.initPackage();
+            this.init=true;
+        }
         this.initMapping(request);
         this.getData(request , response);
     }
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        PrintWriter out = resp.getWriter();
         try {
             this.processRequest(req, resp);
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            out.println(e.getMessage());
         }
     }
 }
