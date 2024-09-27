@@ -7,7 +7,9 @@ import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public class FrontUtil {
@@ -17,18 +19,27 @@ public class FrontUtil {
         return classes.toArray(new Class<?>[0]);
     }
 
-   
-    public static HashMap<String , Mapping> getAllMapping(Class<?>[] controllers){
+    public static HashMap<String , Mapping> getAllMapping(Class<?>[] controllers) throws Exception{
         HashMap<String , Mapping> mapping = new HashMap<>();
-        for (int i = 0; i < controllers.length; i++) {
-            AnnotationController annotationController = controllers[i].getAnnotation(AnnotationController.class);
-            Reflections reflect = new Reflections(controllers[i].getName() , new MethodAnnotationsScanner());
+        List<String> urls_check = new ArrayList<>();
+        for (Class<?> controller : controllers) {
+            Reflections reflect = new Reflections(controller.getName(), new MethodAnnotationsScanner());
             Method[] methods = reflect.getMethodsAnnotatedWith(Get.class).toArray(new Method[0]);
             for (Method method : methods) {
                 Get get = method.getAnnotation(Get.class);
-                String url = annotationController.value() + "/" + get.value();
-                Mapping map = new Mapping(controllers[i].getName(), method.getName());
-                mapping.put(url, map);
+                String url = get.value();
+                if(urls_check.isEmpty()||!urls_check.contains(url)){
+                    urls_check.add(url);
+                    Mapping map = new Mapping(controller.getName(), method.getName());
+                    mapping.put(url, map);
+                }
+                else{
+                    throw new Exception("ERROR 2: there are a duplicate method mapping :"
+                            +url+" in controller: "+controller.getName()
+                            +" in the method :"+method.getName()
+                    );
+                }
+
             }
         }
         return mapping;
@@ -45,10 +56,29 @@ public class FrontUtil {
         }
         return null;
     }
+
+    public static int countChar(char counting , String str){
+        int count=0;
+        for(int i =0;i<str.length();i++){
+            if (str.charAt(i)==counting){
+                count++;
+            }
+        }
+        return count;
+    }
+    public static String getAddDispactcher(String url){
+        int count=FrontUtil.countChar('/', url) ;
+        String addDispat="";
+        for (int i = 0; i < count; i++) {
+            addDispat+="../";
+        }
+        return (addDispat);
+    }
+
     public static String getMetaUrl(String url){
-        String[] splits=url.split("/");
+        String[] splits=url.split("/" , 3);
         if(splits.length>2){
-            return  splits[2]+"/"+splits[3];
+            return  splits[2];
         } else if (splits.length==2) {
             return "/";
         }
