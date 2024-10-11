@@ -9,23 +9,12 @@ import com.sprint.objects.Mapping;
 import com.sprint.objects.ModelView;
 
 import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
 public class FrontController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private boolean init = false;
     private HashMap<String , Mapping > allMapping;
     private Mapping mapping;
-
-    
-    public boolean isInit() {
-		return init;
-	}
-
-	public void setInit(boolean init) {
-		this.init = init;
-	}
 
 	public Mapping getMapping() {
         return mapping;
