@@ -9,6 +9,7 @@ import com.sprint.objects.Mapping;
 import com.sprint.objects.ModelView;
 
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
 public class FrontController extends HttpServlet {
@@ -41,7 +42,14 @@ public class FrontController extends HttpServlet {
     public void setAllMapping(HashMap<String, Mapping> allMapping) {
         this.allMapping = allMapping;
     }
-
+    public void init() {
+		try {
+			FrontHelper helper = new FrontHelper(this);
+			helper.initPackage();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+    }
     public void getData(  HttpServletRequest req , HttpServletResponse res) throws Exception {
         PrintWriter out = res.getWriter();
        
@@ -67,10 +75,6 @@ public class FrontController extends HttpServlet {
     }
     public void initFrontController(HttpServletRequest req) throws Exception {
    	 	FrontHelper helper = new FrontHelper(this);
-    	if(!this.isInit()){
-   		 	helper.initPackage();
-   		 	this.setInit(true);
-        }
     	helper.initMapping(req);
     }
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
