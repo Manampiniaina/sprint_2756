@@ -1,10 +1,14 @@
 package com.sprint.objects;
 
-import org.reflections.Reflections;
-
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+
+import com.sprint.framework.MySession;
+import com.sprint.helper.MappingHelper;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 
 public class Mapping {
     private String controllerName;
@@ -36,18 +40,35 @@ public class Mapping {
     public Class<?> getClazz() throws ClassNotFoundException{
         return Class.forName(this.getControllerName());
     }
-    public Method getMethod() throws ClassNotFoundException , NoSuchMethodException{
+    
+    public Method getMethod() throws Exception{
         Class<?> controller= this.getClazz();
-        return controller.getDeclaredMethod(this.getMethodName());
+        Method [] method= controller.getDeclaredMethods();
+        for (int i = 0; i < method.length; i++) {
+        	if(method[i].getName().equals(this.getMethodName())) {
+        		return method[i];
+        	}
+		}
+        throw new Exception("ERROR 9 : Ther are no method with name :"+this.getControllerName());
     }
-    public Object excecute() throws
-            ClassNotFoundException ,
-            NoSuchMethodException ,
-            InstantiationException ,
-            IllegalAccessException ,
-            InvocationTargetException {
-        Object obj=this.getClazz().newInstance();
+   
+	
+	public Object excecute(HttpServletRequest req ) throws Exception {
+        Object obj=this.getClazz().getDeclaredConstructor().newInstance();
+        Field[] fields= obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+			if(field.getType()==MySession.class) {
+				MySession session=new MySession(req.getSession());
+				obj.getClass().getMethod("setSession", MySession.class).invoke(obj, session);
+			}
+		}
         Method method = this.getMethod();
-        return method.invoke(obj  ) ;
+        if(method.getParameterCount()<=0) {
+        	return method.invoke(obj);
+        }
+        Parameter[] parameters = method.getParameters();
+        Object[] objs =MappingHelper.getParametersObject(req, parameters);
+        Object ret =method.invoke(obj, objs);
+        return ret;
     }
 }
