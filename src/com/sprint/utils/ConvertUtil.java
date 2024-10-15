@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ConvertUtil {
 	public static String[] convertEnumerationToTab(Enumeration<String> enumerations) {
-	    List<String> list = new ArrayList<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+	    List<String> list = new ArrayList<>();                                                                                               
 	    while (enumerations.hasMoreElements()) {
 	        String param = enumerations.nextElement();
 	        list.add(param);
