@@ -48,6 +48,5 @@ public class FrontHelper {
             getFrontcontroller().setMapping(map);
             
         }
-    }	   
-    
+    }	    
 }
