@@ -1,14 +1,15 @@
 package com.sprint.objects;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
-import com.sprint.framework.MySession;
-import com.sprint.helper.MappingHelper;
+import com.sprint.annotations.RequestParam;
 
 import jakarta.servlet.http.HttpServletRequest;
-
+import com.sprint.utils.ConvertUtil;
 
 public class Mapping {
     private String controllerName;
@@ -51,23 +52,56 @@ public class Mapping {
 		}
         throw new Exception("ERROR 9 : Ther are no method with name :"+this.getControllerName());
     }
-   
+    private String getParameterName(Parameter parameter) {
+    	if(parameter.isAnnotationPresent(RequestParam.class)) {
+			return parameter.getAnnotation(RequestParam.class).value();
+		}
+
+    	return parameter.getName();
 	
-	public Object excecute(HttpServletRequest req ) throws Exception {
-        Object obj=this.getClazz().getDeclaredConstructor().newInstance();
-        Field[] fields= obj.getClass().getDeclaredFields();
-        for (Field field : fields) {
-			if(field.getType()==MySession.class) {
-				MySession session=new MySession(req.getSession());
-				obj.getClass().getMethod("setSession", MySession.class).invoke(obj, session);
+    }
+	private Object getParameterValue(HttpServletRequest req ,String[] paramServletTab ,Parameter parameter,int parametersLength) throws Exception {
+    	String parameterName ="";
+		parameterName=this.getParameterName(parameter);
+		if(paramServletTab.length>=parametersLength ) {
+			for (String param : paramServletTab) {
+				Object paramValue = null;
+				if(param.equals(parameterName)) {
+					paramValue=req.getParameter(param);
+					paramValue=ConvertUtil.toObject((String) paramValue , parameter.getType());
+					if(paramValue!=null) {
+						return paramValue;
+					}else {
+						throw new Exception("ERROR 7: VALUE OF PARAM :" +parameterName+"IS NULL" );						
+					}
+				}
 			}
 		}
+		else {
+			throw new Exception("ERROR 8: INSUFFICIENT PARAMETERS IN THE FORM");	 			
+		}
+		return null;
+    }
+    
+    private Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws Exception {
+    	List<Object> objs=new ArrayList<>();
+    	Enumeration<String> parameterServlet=req.getParameterNames();
+    	String[] paramServletTab=ConvertUtil.convertEnumerationToTab(parameterServlet);
+    	for (Parameter parameter : parameters) {
+			Object paramValue=this.getParameterValue(req, paramServletTab,parameter, parameters.length);
+			objs.add(paramValue);
+		}
+    	return objs.toArray(new Object[0]);
+    }
+    @SuppressWarnings("deprecation")
+	public Object excecute(HttpServletRequest req ) throws Exception {
+        Object obj=this.getClazz().newInstance();
         Method method = this.getMethod();
         if(method.getParameterCount()<=0) {
         	return method.invoke(obj);
         }
         Parameter[] parameters = method.getParameters();
-        Object[] objs =MappingHelper.getParametersObject(req, parameters);
+        Object[] objs =this.getParametersObject(req, parameters);
         Object ret =method.invoke(obj, objs);
         return ret;
     }

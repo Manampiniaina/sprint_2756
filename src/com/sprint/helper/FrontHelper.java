@@ -1,11 +1,9 @@
 package com.sprint.helper;
 
-
 import java.util.HashMap;
 
 
 import com.sprint.framework.FrontController;
-
 import com.sprint.objects.Mapping;
 import com.sprint.utils.FrontUtil;
 
@@ -26,7 +24,6 @@ public class FrontHelper {
 	public void setFrontcontroller(FrontController frontcontroller) {
 		this.frontcontroller = frontcontroller;
 	}
-	
 	 public void initPackage() throws Exception{
         String packagePath=getFrontcontroller().getInitParameter("packageControllers");
         if(packagePath.isEmpty()){
@@ -34,7 +31,6 @@ public class FrontHelper {
         }
         else{
             Class<?>[] controllers= FrontUtil.getListControllers(packagePath);
-            
             HashMap<String ,  Mapping> allMapping= FrontUtil.getAllMapping(controllers);
             getFrontcontroller().setAllMapping(allMapping);
         }
@@ -46,8 +42,6 @@ public class FrontHelper {
             url=FrontUtil.getMetaUrl(url);
             Mapping map = FrontUtil.getMapping(url , getFrontcontroller().getAllMapping());
             getFrontcontroller().setMapping(map);
-            
         }
-    }	   
-    
+    }	    
 }
