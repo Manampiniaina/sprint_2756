@@ -1,9 +1,12 @@
 package com.sprint.objects;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-
+import com.google.gson.Gson;
+import com.sprint.annotations.RestAPI;
+import com.sprint.framework.MySession;
 import com.sprint.helper.MappingHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,9 +54,14 @@ public class Mapping {
         throw new Exception("ERROR 9 : Ther are no method with name :"+this.getControllerName());
     }
    
-	
-	public Object excecute(HttpServletRequest req ) throws Exception {
-        Object obj=this.getClazz().getDeclaredConstructor().newInstance();
+	public Object executeWithoutRestAPI(HttpServletRequest req , Object obj ) throws Exception{
+		Field[] fields= obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+			if(field.getType()==MySession.class) {
+				MySession session=new MySession(req.getSession());
+				obj.getClass().getMethod("setSession", MySession.class).invoke(obj, session);
+			}
+		}
         Method method = this.getMethod();
         if(method.getParameterCount()<=0) {
         	return method.invoke(obj);
@@ -62,5 +70,25 @@ public class Mapping {
         Object[] objs =MappingHelper.getParametersObject(req, parameters);
         Object ret =method.invoke(obj, objs);
         return ret;
+	}
+	public Object executeWithRestAPI(HttpServletRequest req ,  Object obj) throws Exception{
+		Object obj1=executeWithoutRestAPI(req , obj);
+        if(obj1.getClass()==ModelView.class) {
+        	ModelView mv=(ModelView)obj1;
+        	mv.toJsonData();
+        	obj1= mv;
+        }
+        else {
+        	obj1= new Gson().toJson(obj);
+        }
+		return obj1;
+	}
+	public Object excecute(HttpServletRequest req ) throws Exception {
+		Class<?> clazz=this.getClazz();
+		Object obj=clazz.getDeclaredConstructor().newInstance();
+        if(clazz.isAnnotationPresent(RestAPI.class)) {
+        	return executeWithRestAPI(req, obj);
+        }
+        return executeWithoutRestAPI(req, obj);
     }
 }

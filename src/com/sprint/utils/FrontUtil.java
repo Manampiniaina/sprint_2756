@@ -50,7 +50,7 @@ public class FrontUtil {
         Set<Class<?>> classes= reflect.getTypesAnnotatedWith(AnnotationController.class);
         return classes.toArray(new Class<?>[0]);
     }
-
+    
     public static HashMap<String , Mapping> getAllMapping(Class<?>[] controllers) throws Exception{
         HashMap<String , Mapping> mapping = new HashMap<>();
         List<String> urls_check = new ArrayList<>();

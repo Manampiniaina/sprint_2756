@@ -12,12 +12,14 @@ import org.reflect.JReflect;
 import com.sprint.annotations.Entity;
 import com.sprint.annotations.FormName;
 import com.sprint.annotations.RequestParam;
+import com.sprint.framework.MySession;
 import com.sprint.utils.ConvertUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 public class MappingHelper {
-
+	
+	
 	public static String getParameterName(Parameter parameter) {
 		if(parameter.isAnnotationPresent(RequestParam.class)) {
 			return parameter.getAnnotation(RequestParam.class).value();
@@ -83,20 +85,24 @@ public class MappingHelper {
 		}
     	return obj;
     }
+    
     public static Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws Exception {
     	List<Object> objs=new ArrayList<>();
     	Enumeration<String> parameterServlet=req.getParameterNames();
     	String[] paramServletTab=ConvertUtil.convertEnumerationToTab(parameterServlet);
     	for (Parameter parameter : parameters) {
     		Object paramValue=null;
+    		
     		if(parameter.isAnnotationPresent(RequestParam.class)) {
     			paramValue=getRequestParamValue(req, paramServletTab,parameter);    			
     		}
     		if(parameter.isAnnotationPresent(Entity.class)) {
     			paramValue=getEntityValue(req, parameter, paramServletTab);
     		}
-    		if(!parameter.isAnnotationPresent(RequestParam.class) && !parameter.isAnnotationPresent(Entity.class)) {
-    			throw new Exception("VOUS DEVEZ METTRE UNE ANNOTATION @RequestParam OU @Entity SUR LE PARAMETER "+parameter.getName());
+    		if(!parameter.isAnnotationPresent(RequestParam.class) 
+    				&& !parameter.isAnnotationPresent(Entity.class)
+    				&&parameter.getType()!=MySession.class ) {
+    			throw new Exception("VOUS DEVEZ METTRE UNE ANNOTATION @RequestParam OU @Entity SUR VOS PARAMETERS "+parameter.getName());
     		}
 			objs.add(paramValue);
 		}
