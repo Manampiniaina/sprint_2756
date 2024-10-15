@@ -1,9 +1,10 @@
 package com.sprint.objects;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-
+import com.sprint.framework.MySession;
 import com.sprint.helper.MappingHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,6 +55,13 @@ public class Mapping {
 	
 	public Object excecute(HttpServletRequest req ) throws Exception {
         Object obj=this.getClazz().getDeclaredConstructor().newInstance();
+        Field[] fields= obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+			if(field.getType()==MySession.class) {
+				MySession session=new MySession(req.getSession());
+				obj.getClass().getMethod("setSession", MySession.class).invoke(obj, session);
+			}
+		}
         Method method = this.getMethod();
         if(method.getParameterCount()<=0) {
         	return method.invoke(obj);
