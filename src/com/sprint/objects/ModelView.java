@@ -41,8 +41,5 @@ public class ModelView {
     		maptemp.replace(entry.getKey(), value);
 		}
     	this.setData(maptemp);
-    	for (Map.Entry<String , Object> entry : this.getData().entrySet()) {
-    		System.out.println("key:"+entry.getKey() +" value:"+entry.getValue() );
-		}
     }
 }
