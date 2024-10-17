@@ -1,108 +1,121 @@
 package com.sprint.objects;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
-import com.sprint.annotations.RequestParam;
+import com.google.gson.Gson;
+import com.sprint.annotations.RestAPI;
+import com.sprint.framework.MySession;
+import com.sprint.helper.MappingHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
-import com.sprint.utils.ConvertUtil;
+
 
 public class Mapping {
     private String controllerName;
-    private String methodName;
+    private List<VerbAction> verbactions;
 
     public Mapping(){}
-    public Mapping(String controllerName, String methodName) {
+    public Mapping(String controllerName, String methodName , String verb) {
         this.setControllerName(controllerName);
-        this.setMethodName(methodName);
+        this.addVerbAction(verb, methodName);
     }
     public String getControllerName() {
         return controllerName;
     }
-
-    public void setControllerName(String controllerName) {
+    
+    public List<VerbAction> getVerbactions() {
+    	if(this.verbactions==null) {
+    		List<VerbAction> verbactions1=new ArrayList<VerbAction>();
+    		this.setVerbactions(verbactions1);
+    		return verbactions1;
+    	}
+		return verbactions;
+	}
+	public void setVerbactions(List<VerbAction> verbactions) {
+		this.verbactions = verbactions;
+	}
+	public void setControllerName(String controllerName) {
         this.controllerName = controllerName;
     }
-
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
-    }
-    public boolean equals(Mapping map){
-        return map.getControllerName().equals(this.getControllerName()) && map.getMethodName().equals(this.getMethodName());
-    }
+	public boolean ifExistVerb(String verb) {
+		for (VerbAction verbAction : this.getVerbactions()) {
+			if(verbAction.getVerb().equals(verb)) {
+				return true;
+			}
+		}
+		return false;
+	}
     public Class<?> getClazz() throws ClassNotFoundException{
         return Class.forName(this.getControllerName());
     }
-    
-    public Method getMethod() throws Exception{
+    public void addVerbAction(String verb , String methodname) {
+    	VerbAction verb_action=new VerbAction(verb , methodname);
+    	List<VerbAction> verb_actions = this.getVerbactions();
+    	verb_actions.add(verb_action);
+    	this.setVerbactions(verb_actions);
+    }
+    public String getMethodnameWithVerb(String verb) throws Exception {
+    	List<VerbAction> verbactions= this.getVerbactions();
+    	for (VerbAction verbAction : verbactions) {
+			if(verbAction.getVerb().equals(verb)) {
+				return verbAction.getMethodname();
+			}
+		}
+    	throw new Exception("ERROR 7 :There are no method with verb "+verb +" in controller : "+this.getControllerName());
+    }
+    public Method getMethod(String verb) throws Exception{
         Class<?> controller= this.getClazz();
         Method [] method= controller.getDeclaredMethods();
         for (int i = 0; i < method.length; i++) {
-        	if(method[i].getName().equals(this.getMethodName())) {
+        	if(method[i].getName().equals(this.getMethodnameWithVerb(verb) )) {
         		return method[i];
         	}
 		}
         throw new Exception("ERROR 9 : Ther are no method with name :"+this.getControllerName());
     }
-    private String getParameterName(Parameter parameter) {
-    	if(parameter.isAnnotationPresent(RequestParam.class)) {
-			return parameter.getAnnotation(RequestParam.class).value();
-		}
-
-    	return parameter.getName();
-	
-    }
-	private Object getParameterValue(HttpServletRequest req ,String[] paramServletTab ,Parameter parameter,int parametersLength) throws Exception {
-    	String parameterName ="";
-		parameterName=this.getParameterName(parameter);
-		if(paramServletTab.length>=parametersLength ) {
-			for (String param : paramServletTab) {
-				Object paramValue = null;
-				if(param.equals(parameterName)) {
-					paramValue=req.getParameter(param);
-					paramValue=ConvertUtil.toObject((String) paramValue , parameter.getType());
-					if(paramValue!=null) {
-						return paramValue;
-					}else {
-						throw new Exception("ERROR 7: VALUE OF PARAM :" +parameterName+"IS NULL" );						
-					}
-				}
+   
+	public Object executeWithoutRestAPI(HttpServletRequest req , Object obj ,String verb ) throws Exception{
+		Field[] fields= obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+			if(field.getType()==MySession.class) {
+				MySession session=new MySession(req.getSession());
+				obj.getClass().getMethod("setSession", MySession.class).invoke(obj, session);
 			}
 		}
-		else {
-			throw new Exception("ERROR 8: INSUFFICIENT PARAMETERS IN THE FORM");	 			
-		}
-		return null;
-    }
-    
-    private Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws Exception {
-    	List<Object> objs=new ArrayList<>();
-    	Enumeration<String> parameterServlet=req.getParameterNames();
-    	String[] paramServletTab=ConvertUtil.convertEnumerationToTab(parameterServlet);
-    	for (Parameter parameter : parameters) {
-			Object paramValue=this.getParameterValue(req, paramServletTab,parameter, parameters.length);
-			objs.add(paramValue);
-		}
-    	return objs.toArray(new Object[0]);
-    }
-    @SuppressWarnings("deprecation")
-	public Object excecute(HttpServletRequest req ) throws Exception {
-        Object obj=this.getClazz().newInstance();
-        Method method = this.getMethod();
+        Method method = this.getMethod(verb);
         if(method.getParameterCount()<=0) {
         	return method.invoke(obj);
         }
         Parameter[] parameters = method.getParameters();
-        Object[] objs =this.getParametersObject(req, parameters);
+        Object[] objs =MappingHelper.getParametersObject(req, parameters);
         Object ret =method.invoke(obj, objs);
         return ret;
+	}
+	public Object executeWithRestAPI(HttpServletRequest req ,  Object obj , String verb) throws Exception{
+		Object obj1=executeWithoutRestAPI(req , obj ,verb);
+        if(obj1.getClass()==ModelView.class) {
+        	ModelView mv=(ModelView)obj1;
+        	mv.toJsonData();
+        	obj1= mv;
+        }
+        else {
+        	obj1= new Gson().toJson(obj1);
+        }
+        return obj1;
+	}
+	
+	public Object excecute(HttpServletRequest req , String verb ) throws Exception {
+		Class<?> clazz=this.getClazz();
+		Object obj=clazz.getDeclaredConstructor().newInstance();
+        if(clazz.isAnnotationPresent(RestAPI.class)) {
+        	return executeWithRestAPI(req, obj , verb);
+        }
+        return executeWithoutRestAPI(req, obj , verb);
     }
+	
+	
 }
