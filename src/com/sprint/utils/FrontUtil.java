@@ -5,14 +5,15 @@ import com.sprint.annotations.FormName;
 import com.sprint.annotations.Get;
 import com.sprint.annotations.Post;
 import com.sprint.annotations.Url;
-import com.sprint.annotations.RequestParam;
 
 import com.sprint.objects.Mapping;
+
+import jakarta.servlet.ServletException;
+
 import org.reflect.JReflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -20,27 +21,17 @@ import java.util.List;
 import java.util.Set;
 
 public class FrontUtil {
-	
-	
-	public static boolean isPresentParameter(String parameterName , Mapping mapping , String verb) throws Exception {
-    	Method method = mapping.getMethod(verb);
-		Parameter[] parameters = method.getParameters(); 
-    	for (Parameter parameter : parameters) {
-    		if(parameter.isAnnotationPresent(RequestParam.class)){
-    			RequestParam annotation = parameter.getAnnotation(RequestParam.class);
-    			String annotationValue=annotation.value();
-    			if(annotationValue.equals(parameterName)){
-    				return true;
-    			}
-    		}
-    		else {
-    			throw new Exception("ERROR 5: ALL PARAMETER MUST HAVE @RequestParam IN PARAM : "+parameter.getName() + " METHOD: "+method.getName()
-    	     	+" IN CONTROLLER : " +mapping.getControllerName() );
-    		}
-		}
-		return false;
+	public static String generateErrorPage(String errorMessage) {
+	    StringBuilder html = new StringBuilder();
+	    html.append("<html><head><title>Erreur</title>");
+	    html.append("<style>");
+	    html.append("body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }");
+	    html.append(".exception { font-size: 24px; color: red; text-align: center; }");
+	    html.append("</style></head><body>");
+	    html.append("<div class='exception'>" + errorMessage + "</div>");
+	    html.append("</body></html>");
+	    return html.toString();
 	}
-	
 	public static int countEnumeration(Enumeration<String> enumerations) {
 		int count=0;
 		while(enumerations.hasMoreElements()) {
@@ -79,7 +70,7 @@ public class FrontUtil {
     	return false;
     }
 
-    public static HashMap<String , Mapping> getAllMapping(Class<?>[] controllers) throws Exception{
+    public static HashMap<String , Mapping> getAllMapping(Class<?>[] controllers) throws ServletException{
         HashMap<String , Mapping> mapping = new HashMap<>();
         List<HashMap<String, String> > urls_check = new ArrayList<>();
         for (Class<?> controller : controllers) {
@@ -94,6 +85,7 @@ public class FrontUtil {
                 HashMap<String, String> hashurl =new HashMap<String, String>();
                 hashurl.put("verb", verb);
                 hashurl.put("url", url);
+                System.out.println("url:"+hashurl.get("url") + " verb:"+hashurl.get("verb"));
                 if(!isRepeat(hashurl, urls_check)){
                     urls_check.add(hashurl);
                     if(mapping.containsKey(url)){
@@ -108,7 +100,7 @@ public class FrontUtil {
                     
                 }
                 else{
-                    throw new Exception("ERROR 2: there are a duplicate method mapping :"
+                    throw new ServletException("ERROR 2: there are a duplicate method mapping :"
                             +url +" verb :" +verb+ " in controller: "+controller.getName()
                             +" in the method :"+method.getName()
                     );

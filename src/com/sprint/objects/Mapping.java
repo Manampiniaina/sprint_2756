@@ -1,13 +1,17 @@
 package com.sprint.objects;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
 import com.sprint.annotations.RestAPI;
+import com.sprint.exception.ConvertException;
+import com.sprint.exception.SprintException;
 import com.sprint.framework.MySession;
 import com.sprint.helper.MappingHelper;
 
@@ -58,16 +62,16 @@ public class Mapping {
     	verb_actions.add(verb_action);
     	this.setVerbactions(verb_actions);
     }
-    public String getMethodnameWithVerb(String verb) throws Exception {
+    public String getMethodnameWithVerb(String verb) throws NoSuchMethodException{
     	List<VerbAction> verbactions= this.getVerbactions();
     	for (VerbAction verbAction : verbactions) {
 			if(verbAction.getVerb().equals(verb)) {
 				return verbAction.getMethodname();
 			}
 		}
-    	throw new Exception("ERROR 7 :There are no method with verb "+verb +" in controller : "+this.getControllerName());
+    	throw new NoSuchMethodException("ERROR 500 : Il n'y a pas de méthode avec le verbe : " + verb + " dans cette URL dans le contrôleur : " + this.getControllerName());
     }
-    public Method getMethod(String verb) throws Exception{
+    public Method getMethod(String verb) throws NoSuchMethodException , ClassNotFoundException{
         Class<?> controller= this.getClazz();
         Method [] method= controller.getDeclaredMethods();
         for (int i = 0; i < method.length; i++) {
@@ -75,10 +79,15 @@ public class Mapping {
         		return method[i];
         	}
 		}
-        throw new Exception("ERROR 9 : Ther are no method with name :"+this.getControllerName());
+		return null;
     }
    
-	public Object executeWithoutRestAPI(HttpServletRequest req , Object obj ,String verb ) throws Exception{
+	public Object executeWithoutRestAPI(HttpServletRequest req , Object obj ,String verb ) throws 
+		IllegalAccessException, IllegalArgumentException,
+		InvocationTargetException, NoSuchMethodException, SecurityException, 
+		ClassNotFoundException, InstantiationException, SprintException, ConvertException,
+		ParseException  
+	{
 		Field[] fields= obj.getClass().getDeclaredFields();
         for (Field field : fields) {
 			if(field.getType()==MySession.class) {
@@ -95,23 +104,36 @@ public class Mapping {
         Object ret =method.invoke(obj, objs);
         return ret;
 	}
-	public Object executeWithRestAPI(HttpServletRequest req ,  Object obj , String verb) throws Exception{
+	public Object executeWithRestAPI(HttpServletRequest req ,  Object obj , String verb) throws 
+		IllegalAccessException, IllegalArgumentException, 
+		InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException,
+		InstantiationException, SprintException, ConvertException, ParseException 
+	{
 		Object obj1=executeWithoutRestAPI(req , obj ,verb);
         if(obj1.getClass()==ModelView.class) {
+        	System.out.println("in modelview ");
         	ModelView mv=(ModelView)obj1;
         	mv.toJsonData();
         	obj1= mv;
         }
         else {
+        	System.out.println("to json executeWithRestAPI");        	
         	obj1= new Gson().toJson(obj1);
+        	System.out.println("value json in executeWithRestAPI: "+(String)obj1);
         }
-        return obj1;
+        System.out.println("final value in  executeWithRestAPI : " + obj1.toString());        	
+		return obj1;
 	}
 	
-	public Object excecute(HttpServletRequest req , String verb ) throws Exception {
+	public Object excecute(HttpServletRequest req , String verb ) throws ClassNotFoundException,
+			InstantiationException, IllegalAccessException, IllegalArgumentException, 
+			InvocationTargetException, NoSuchMethodException, SecurityException, SprintException,
+			ConvertException, ParseException
+	{
 		Class<?> clazz=this.getClazz();
 		Object obj=clazz.getDeclaredConstructor().newInstance();
         if(clazz.isAnnotationPresent(RestAPI.class)) {
+        	System.out.println("rest api yesss");
         	return executeWithRestAPI(req, obj , verb);
         }
         return executeWithoutRestAPI(req, obj , verb);

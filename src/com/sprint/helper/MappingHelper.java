@@ -1,8 +1,10 @@
 package com.sprint.helper;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -12,6 +14,8 @@ import org.reflect.JReflect;
 import com.sprint.annotations.Entity;
 import com.sprint.annotations.FormName;
 import com.sprint.annotations.RequestParam;
+import com.sprint.exception.ConvertException;
+import com.sprint.exception.SprintException;
 import com.sprint.framework.MySession;
 import com.sprint.utils.ConvertUtil;
 
@@ -29,7 +33,7 @@ public class MappingHelper {
 		
 	}
 	
-	public static Object getRequestParamValue(HttpServletRequest req ,String[] paramServletTab ,Parameter parameter) throws Exception {
+	public static Object getRequestParamValue(HttpServletRequest req ,String[] paramServletTab ,Parameter parameter) throws ConvertException, ParseException  {
     	String parameterName ="";
 		parameterName=MappingHelper.getParameterName(parameter);
 		for (String param : paramServletTab) {
@@ -40,8 +44,6 @@ public class MappingHelper {
 				paramValue=ConvertUtil.toObjectWithClass((String) paramValue ,clazz );
 				if(paramValue!=null) {
 					return paramValue;
-				}else {
-					throw new Exception("ERROR 7: VALUE OF PARAM :" +parameterName+"IS NULL" );						
 				}
 			}
 		}
@@ -64,7 +66,7 @@ public class MappingHelper {
 		String formName=getFormName(field);
 		return entityName+":"+formName;
 	}
-    public static Object getEntityValue(HttpServletRequest req , Parameter parameter , String[] paramServletTab ) throws Exception {
+    public static Object getEntityValue(HttpServletRequest req , Parameter parameter , String[] paramServletTab ) throws NoSuchMethodException, ConvertException, ParseException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException  {
     	Class<?> clazz=parameter.getType();
     	Object obj=clazz.getDeclaredConstructor().newInstance();
     	Field[] fields=obj.getClass().getDeclaredFields();
@@ -84,7 +86,7 @@ public class MappingHelper {
     	return obj;
     }
     
-    public static Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws Exception {
+    public static Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws SprintException, ConvertException, ParseException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
     	List<Object> objs=new ArrayList<>();
     	Enumeration<String> parameterServlet=req.getParameterNames();
     	String[] paramServletTab=ConvertUtil.convertEnumerationToTab(parameterServlet);
@@ -100,7 +102,8 @@ public class MappingHelper {
     		if(!parameter.isAnnotationPresent(RequestParam.class) 
     				&& !parameter.isAnnotationPresent(Entity.class)
     				&&parameter.getType()!=MySession.class ) {
-    			throw new Exception("VOUS DEVEZ METTRE UNE ANNOTATION @RequestParam OU @Entity SUR VOS PARAMETERS "+parameter.getName());
+    			throw new SprintException("ERREUR 500:VOUS DEVEZ METTRE UNE ANNOTATION @RequestParam OU @Entity(pour les entites) SUR VOS PARAMETERS : "
+    				+parameter.getName() );
     		}
 			objs.add(paramValue);
 		}
