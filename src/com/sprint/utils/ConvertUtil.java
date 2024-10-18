@@ -49,9 +49,10 @@ public class ConvertUtil {
         if(clazz==String.class){
             return parameter;
         }
-      
+        
         throw new ConvertException("CAN'T CONVERT TO "+clazz.getName());
     }
+	
 	public static Object toObjectWithClass(String parameter , Class<?> clazz) throws ConvertException , ParseException{
         if(clazz==Double.class){
             return Double.parseDouble(parameter);
@@ -80,6 +81,10 @@ public class ConvertUtil {
         if(clazz==String.class){
             return parameter;
         }
+   
         throw new ConvertException("CAN'T CONVERT TO "+clazz.getName());
     }
+
+
 }
+

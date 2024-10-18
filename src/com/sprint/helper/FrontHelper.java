@@ -35,7 +35,6 @@ public class FrontHelper {
         }
         else{
             Class<?>[] controllers= FrontUtil.getListControllers(packagePath);
-            
             HashMap<String ,  Mapping> allMapping= FrontUtil.getAllMapping(controllers);
             getFrontcontroller().setAllMapping(allMapping);
         }

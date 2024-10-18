@@ -1,5 +1,6 @@
 package com.sprint.helper;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,13 +14,17 @@ import org.reflect.JReflect;
 
 import com.sprint.annotations.Entity;
 import com.sprint.annotations.FormName;
+import com.sprint.annotations.RequestFile;
 import com.sprint.annotations.RequestParam;
 import com.sprint.exception.ConvertException;
 import com.sprint.exception.SprintException;
 import com.sprint.framework.MySession;
+import com.sprint.utils.CheckUtil;
 import com.sprint.utils.ConvertUtil;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 
 public class MappingHelper {
 	public static String getParameterName(Parameter parameter) {
@@ -29,13 +34,22 @@ public class MappingHelper {
 		if(parameter.isAnnotationPresent(Entity.class)) {
 			return parameter.getAnnotation(Entity.class).value();
 		}
+		if(parameter.isAnnotationPresent(RequestFile.class)) {
+			return parameter.getAnnotation(RequestFile.class).value();
+		}
 		return parameter.getName();
 		
 	}
-	
+	public static Object getRequestFile(HttpServletRequest req ,Parameter parameter ) throws IOException, ServletException {
+		String parameterName ="";
+		parameterName=MappingHelper.getParameterName(parameter);
+		Part part=req.getPart(parameterName);
+		return part;
+	}
 	public static Object getRequestParamValue(HttpServletRequest req ,String[] paramServletTab ,Parameter parameter) throws ConvertException, ParseException  {
     	String parameterName ="";
 		parameterName=MappingHelper.getParameterName(parameter);
+		
 		for (String param : paramServletTab) {
 			Object paramValue = null;
 			if(param.equals(parameterName)) {
@@ -48,6 +62,28 @@ public class MappingHelper {
 			}
 		}
 		return null;
+    }
+//	0 c'est un request parameter - 1 c'est un entity - 2 c'est un session - 3 c'est un Part 
+	public static Object getValue(HttpServletRequest req ,String[] paramServletTab  ,Parameter parameter) throws ConvertException, ParseException, NoSuchMethodException, 
+		InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, 
+		IOException, ServletException  
+	{
+		int checktype=CheckUtil.checkTypeParameter(parameter);
+		Object paramValue=null;
+		if(checktype==0) {
+			paramValue=getRequestParamValue(req, paramServletTab, parameter);
+		}
+		if(checktype==1) {
+			paramValue=getEntityValue(req, parameter, paramServletTab);
+		}
+		if(checktype==2) {
+			paramValue=new MySession(req.getSession());
+		}
+		if(checktype==3) {
+			paramValue=getRequestFile(req, parameter) ;
+		}
+		return paramValue;
+		
     }
 	public static String getFormName(Field field) {
 		if(field.isAnnotationPresent(FormName.class)) {
@@ -85,8 +121,12 @@ public class MappingHelper {
 		}
     	return obj;
     }
-    
-    public static Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws SprintException, ConvertException, ParseException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
+   
+  
+    public static Object[] getParametersObject(HttpServletRequest req ,  Parameter[] parameters ) throws SprintException, ConvertException,
+    		ParseException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException,
+    		InvocationTargetException, SecurityException, IOException, ServletException 
+    {
     	List<Object> objs=new ArrayList<>();
     	Enumeration<String> parameterServlet=req.getParameterNames();
     	String[] paramServletTab=ConvertUtil.convertEnumerationToTab(parameterServlet);
@@ -99,11 +139,13 @@ public class MappingHelper {
     		if(parameter.isAnnotationPresent(Entity.class)) {
     			paramValue=getEntityValue(req, parameter, paramServletTab);
     		}
+    		if(parameter.isAnnotationPresent(RequestFile.class)) {
+    			paramValue=getRequestFile(req, parameter);
+    		}
     		if(!parameter.isAnnotationPresent(RequestParam.class) 
     				&& !parameter.isAnnotationPresent(Entity.class)
-    				&&parameter.getType()!=MySession.class ) {
-    			throw new SprintException("ERREUR 500:VOUS DEVEZ METTRE UNE ANNOTATION @RequestParam OU @Entity(pour les entites) SUR VOS PARAMETERS : "
-    				+parameter.getName() );
+    				&&parameter.getType()!=MySession.class&&!parameter.isAnnotationPresent(RequestFile.class)  ) {
+    			paramValue=getValue(req, paramServletTab,parameter);   
     		}
 			objs.add(paramValue);
 		}

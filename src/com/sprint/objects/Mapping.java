@@ -1,5 +1,6 @@
 package com.sprint.objects;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -15,6 +16,7 @@ import com.sprint.exception.SprintException;
 import com.sprint.framework.MySession;
 import com.sprint.helper.MappingHelper;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 
 
@@ -86,7 +88,7 @@ public class Mapping {
 		IllegalAccessException, IllegalArgumentException,
 		InvocationTargetException, NoSuchMethodException, SecurityException, 
 		ClassNotFoundException, InstantiationException, SprintException, ConvertException,
-		ParseException  
+		ParseException, IOException, ServletException  
 	{
 		Field[] fields= obj.getClass().getDeclaredFields();
         for (Field field : fields) {
@@ -107,33 +109,28 @@ public class Mapping {
 	public Object executeWithRestAPI(HttpServletRequest req ,  Object obj , String verb) throws 
 		IllegalAccessException, IllegalArgumentException, 
 		InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException,
-		InstantiationException, SprintException, ConvertException, ParseException 
+		InstantiationException, SprintException, ConvertException, ParseException, IOException, ServletException 
 	{
 		Object obj1=executeWithoutRestAPI(req , obj ,verb);
         if(obj1.getClass()==ModelView.class) {
-        	System.out.println("in modelview ");
         	ModelView mv=(ModelView)obj1;
         	mv.toJsonData();
         	obj1= mv;
         }
         else {
-        	System.out.println("to json executeWithRestAPI");        	
         	obj1= new Gson().toJson(obj1);
-        	System.out.println("value json in executeWithRestAPI: "+(String)obj1);
         }
-        System.out.println("final value in  executeWithRestAPI : " + obj1.toString());        	
 		return obj1;
 	}
 	
 	public Object excecute(HttpServletRequest req , String verb ) throws ClassNotFoundException,
 			InstantiationException, IllegalAccessException, IllegalArgumentException, 
 			InvocationTargetException, NoSuchMethodException, SecurityException, SprintException,
-			ConvertException, ParseException
+			ConvertException, ParseException, IOException, ServletException
 	{
 		Class<?> clazz=this.getClazz();
 		Object obj=clazz.getDeclaredConstructor().newInstance();
         if(clazz.isAnnotationPresent(RestAPI.class)) {
-        	System.out.println("rest api yesss");
         	return executeWithRestAPI(req, obj , verb);
         }
         return executeWithoutRestAPI(req, obj , verb);

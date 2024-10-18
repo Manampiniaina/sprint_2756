@@ -33,13 +33,11 @@ public class ModelView {
         this.setData(newdata);
     }
     public void toJsonData() {
-    	System.out.println("toJsonDate in ModelView ");
     	HashMap<String,Object> maptemp=this.getData();
     	Gson json= new Gson();
     	Object value=null;
     	for (Map.Entry<String , Object> entry : maptemp.entrySet()) {	
 			value=json.toJson(entry.getValue());    	
-			System.out.println("Json value: "+json.toJson(entry.getValue()));
     		maptemp.replace(entry.getKey(), value);
 		}
     	this.setData(maptemp);

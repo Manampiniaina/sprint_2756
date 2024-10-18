@@ -16,8 +16,10 @@ import com.sprint.utils.FrontUtil;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.*;
 
+@MultipartConfig
 public class FrontController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     private HashMap<String , Mapping > allMapping;
@@ -85,6 +87,7 @@ public class FrontController extends HttpServlet {
     }
     public void initFrontController(HttpServletRequest req) throws ServletException  {
     	if(!isInit()) {
+    		
     		this.setInit(true);
     		this.initialize();
     	}
@@ -112,6 +115,7 @@ public class FrontController extends HttpServlet {
     	 PrintWriter out = resp.getWriter();
          resp.setContentType("text/html");
         try {
+        	
             this.processRequest(req, resp,"Post");
         }catch (Exception e){
         	e.printStackTrace();
