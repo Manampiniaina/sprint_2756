@@ -36,9 +36,9 @@ public class ModelView {
     	HashMap<String,Object> maptemp=this.getData();
     	Gson json= new Gson();
     	Object value=null;
-    	for (Map.Entry<String , Object> entry : maptemp.entrySet()) {
-    		value=json.toJson(entry.getValue());
-    		maptemp.replace(entry.getKey(), value);
+    	for (Map.Entry<String , Object> entry : maptemp.entrySet()) {	
+			value=json.toJson(entry.getValue());    	
+			maptemp.replace(entry.getKey(), value);
 		}
     	this.setData(maptemp);
     }

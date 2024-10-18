@@ -18,8 +18,6 @@ import com.sprint.utils.ConvertUtil;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class MappingHelper {
-	
-	
 	public static String getParameterName(Parameter parameter) {
 		if(parameter.isAnnotationPresent(RequestParam.class)) {
 			return parameter.getAnnotation(RequestParam.class).value();
@@ -30,6 +28,7 @@ public class MappingHelper {
 		return parameter.getName();
 		
 	}
+	
 	public static Object getRequestParamValue(HttpServletRequest req ,String[] paramServletTab ,Parameter parameter) throws Exception {
     	String parameterName ="";
 		parameterName=MappingHelper.getParameterName(parameter);
@@ -38,8 +37,7 @@ public class MappingHelper {
 			if(param.equals(parameterName)) {
 				paramValue=req.getParameter(param);
 				Class<?> clazz=parameter.getType();
-				 Object obj = clazz.getDeclaredConstructor().newInstance();
-				paramValue=ConvertUtil.toObject((String) paramValue ,obj );
+				paramValue=ConvertUtil.toObjectWithClass((String) paramValue ,clazz );
 				if(paramValue!=null) {
 					return paramValue;
 				}else {

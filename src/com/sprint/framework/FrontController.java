@@ -42,10 +42,10 @@ public class FrontController extends HttpServlet {
 			throw new RuntimeException(e);
 		}
     }
-    public void getData(  HttpServletRequest req , HttpServletResponse res) throws Exception {
+    public void getData(  HttpServletRequest req , HttpServletResponse res , String verb) throws Exception {
         PrintWriter out = res.getWriter();       
         if(this.getMapping()!=null) {
-            Object obj = this.getMapping().excecute(req);
+            Object obj = this.getMapping().excecute(req , verb);
             if (obj.getClass().getName().equals("java.lang.String")) {
                 out.println( (String)obj);
             }
@@ -68,16 +68,26 @@ public class FrontController extends HttpServlet {
    	 	FrontHelper helper = new FrontHelper(this);
     	helper.initMapping(req);
     }
-    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void processRequest(HttpServletRequest request, HttpServletResponse response , String verb) throws Exception {
     	this.initFrontController(request);
-        this.getData(request , response);
+        this.getData(request , response , verb);
     }
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter out = resp.getWriter();
         try {
-            this.processRequest(req, resp);
+            this.processRequest(req, resp,"Get");
+        }catch (Exception e){
+        	e.printStackTrace();
+            out.println(e.getMessage());
+        }
+    }
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        PrintWriter out = resp.getWriter();
+        try {
+            this.processRequest(req, resp,"Post");
         }catch (Exception e){
         	e.printStackTrace();
             out.println(e.getMessage());
