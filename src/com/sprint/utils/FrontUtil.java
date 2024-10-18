@@ -85,6 +85,7 @@ public class FrontUtil {
                 HashMap<String, String> hashurl =new HashMap<String, String>();
                 hashurl.put("verb", verb);
                 hashurl.put("url", url);
+                System.out.println("url:"+hashurl.get("url") + " verb:"+hashurl.get("verb"));
                 if(!isRepeat(hashurl, urls_check)){
                     urls_check.add(hashurl);
                     if(mapping.containsKey(url)){
