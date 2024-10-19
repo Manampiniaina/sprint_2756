@@ -139,11 +139,11 @@ public class JReflect {
 		}
     	return null;
     }
-    public static Method isExistSetter(Class<?>clazz, String fieldName) throws Exception {
+    public static Method isExistSetter(Class<?>clazz, String fieldName) throws NoSuchMethodException {
     	Method ishere=isExistMethod("set"+StringUtil.firstToUpperCase(fieldName), clazz);
     	if(ishere!=null) {
     		return ishere;
     	}
-    	throw new Exception("VOUS DEVEZ AVOIR UN SETTER POUR LE CHAMP "+fieldName  +"DANS LA CLASSE "+clazz.getName());
+    	throw new NoSuchMethodException("VOUS DEVEZ AVOIR UN SETTER POUR LE CHAMP "+fieldName  +" DANS LA CLASSE "+clazz.getName());
     }
 }

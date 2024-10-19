@@ -9,6 +9,7 @@ import com.sprint.framework.FrontController;
 import com.sprint.objects.Mapping;
 import com.sprint.utils.FrontUtil;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class FrontHelper {
@@ -27,14 +28,14 @@ public class FrontHelper {
 		this.frontcontroller = frontcontroller;
 	}
 	
-	 public void initPackage() throws Exception{
+	 public void initPackage() throws ServletException{
         String packagePath=getFrontcontroller().getInitParameter("packageControllers");
         if(packagePath.isEmpty()){
-            throw new Exception("ERROR 1:Missing package in the 'webapps/WEB-INF/web.xml',in the init param->'packageControllers'");
+            throw new ServletException("ERROR 500 :Missing package in the 'webapps/WEB-INF/web.xml',in the init param->'packageControllers'");
         }
         else{
             Class<?>[] controllers= FrontUtil.getListControllers(packagePath);
-            
+            System.out.println("init package and mapping  ... ");
             HashMap<String ,  Mapping> allMapping= FrontUtil.getAllMapping(controllers);
             getFrontcontroller().setAllMapping(allMapping);
         }
