@@ -1,20 +1,37 @@
 package com.sprint.framework;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sprint.exception.ConvertException;
+import com.sprint.exception.ReturnException;
+import com.sprint.exception.SprintException;
 import com.sprint.helper.FrontHelper;
 import com.sprint.objects.Mapping;
 import com.sprint.objects.ModelView;
+import com.sprint.utils.FrontUtil;
 
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
 public class FrontController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     private HashMap<String , Mapping > allMapping;
     private Mapping mapping;
+    private boolean init=false;
+    
+	public boolean isInit() {
+		return init;
+	}
+
+	public void setInit(boolean init) {
+		this.init = init;
+	}
+
 	public Mapping getMapping() {
         return mapping;
     }
@@ -34,18 +51,20 @@ public class FrontController extends HttpServlet {
     public void setAllMapping(HashMap<String, Mapping> allMapping) {
         this.allMapping = allMapping;
     }
-    public void init() {
-		try {
-			FrontHelper helper = new FrontHelper(this);
-			helper.initPackage();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+    
+    public void initialize ()throws ServletException {
+		FrontHelper helper = new FrontHelper(this);
+		helper.initPackage();
     }
-    public void getData(  HttpServletRequest req , HttpServletResponse res) throws Exception {
+    
+    public void getData(  HttpServletRequest req , HttpServletResponse res , String verb) throws ReturnException,
+		    ServletException, IOException, ClassNotFoundException, InstantiationException,
+		    IllegalAccessException, IllegalArgumentException, InvocationTargetException, 
+		    NoSuchMethodException, SecurityException, SprintException, ConvertException, ParseException 
+    {
         PrintWriter out = res.getWriter();       
         if(this.getMapping()!=null) {
-            Object obj = this.getMapping().excecute(req);
+            Object obj = this.getMapping().excecute(req , verb);
             if (obj.getClass().getName().equals("java.lang.String")) {
                 out.println( (String)obj);
             }
@@ -58,29 +77,45 @@ public class FrontController extends HttpServlet {
                 dispatcher.forward(req, res);
             }
             else{
-                throw new Exception("ERROR 3: return type not found , the type may a java.lang.String or a com.objects.ModelView ");
+                throw new ReturnException("ERROR 400: Type de retour non trouve. Le type peut être java.lang.String ou com.objects.ModelView.");
             }
         }else{
-           throw new Exception("ERROR 404: URL/PAGE NOT FOUND OR DOESN'T EXIST ");
+           throw new ServletException("ERROR 404: URL NON TROUVÉE OU N'EXISTE PAS.");
         }
     }
-    public void initFrontController(HttpServletRequest req) throws Exception {
-   	 	FrontHelper helper = new FrontHelper(this);
-    	helper.initMapping(req);
+    public void initFrontController(HttpServletRequest req) throws ServletException  {
+    	if(!isInit()) {
+    		this.setInit(true);
+    		this.initialize();
+    	}
+    	FrontHelper helper = new FrontHelper(this);
+    	helper.initMapping(req);    		
     }
-    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void processRequest(HttpServletRequest request, HttpServletResponse response , String verb) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ReturnException, ServletException, IOException, SprintException, ConvertException, ParseException  {
     	this.initFrontController(request);
-        this.getData(request , response);
+        this.getData(request , response , verb);
     }
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter out = resp.getWriter();
+        resp.setContentType("text/html");
         try {
-            this.processRequest(req, resp);
+            this.processRequest(req, resp,"Get");
         }catch (Exception e){
         	e.printStackTrace();
-            out.println(e.getMessage());
+        	out.println(FrontUtil.generateErrorPage(e.getMessage())) ;
+        }
+    }
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    	 PrintWriter out = resp.getWriter();
+         resp.setContentType("text/html");
+        try {
+            this.processRequest(req, resp,"Post");
+        }catch (Exception e){
+        	e.printStackTrace();
+        	out.println(FrontUtil.generateErrorPage(e.getMessage())) ;
         }
     }
 }

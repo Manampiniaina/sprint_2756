@@ -7,6 +7,8 @@ import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.*;
 
+import com.sprint.utils.StringUtil;
+
 
 public class JReflect {
     private String packagePath;
@@ -118,6 +120,30 @@ public class JReflect {
         }
         return methods_annotated.toArray(new Method[0]);
     }
-    
-
+    public  Parameter[] getParameterAnnotatedWith(Method method , Class<? extends Annotation> annotation) {
+    	List<Parameter> parametersAnnotated=new ArrayList<>();
+    	Parameter[] parameters = method.getParameters();
+    	for (Parameter parameter : parameters) {
+			if(parameter.isAnnotationPresent(annotation)) {
+				parametersAnnotated.add(parameter);
+			}
+		}
+    	return parametersAnnotated.toArray(new Parameter[0]);
+    }
+    public static Method isExistMethod(String methodName, Class<?>clazz) {
+    	Method[] methods=clazz.getDeclaredMethods();
+    	for (Method method : methods) {
+			if(method.getName().equals(methodName)) {
+				return method;
+			}
+		}
+    	return null;
+    }
+    public static Method isExistSetter(Class<?>clazz, String fieldName) throws NoSuchMethodException {
+    	Method ishere=isExistMethod("set"+StringUtil.firstToUpperCase(fieldName), clazz);
+    	if(ishere!=null) {
+    		return ishere;
+    	}
+    	throw new NoSuchMethodException("VOUS DEVEZ AVOIR UN SETTER POUR LE CHAMP "+fieldName  +" DANS LA CLASSE "+clazz.getName());
+    }
 }
