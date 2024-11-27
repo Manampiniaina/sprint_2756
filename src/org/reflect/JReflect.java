@@ -6,10 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.*;
-
 import com.sprint.utils.StringUtil;
-
-
 public class JReflect {
     private String packagePath;
     private String className;
@@ -17,13 +14,12 @@ public class JReflect {
         this.packagePath = packagePath;
         this.className = className;
     }
-
     public String getClassName() {
         return className;
     }
 
-    public void setClassName(String className) {
-        this.className = className;
+    public void setClassName(String classNam) {
+        this.className = classNam;
     }
 
     public String getPackagePath() {
