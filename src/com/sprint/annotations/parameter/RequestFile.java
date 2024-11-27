@@ -1,4 +1,4 @@
-package com.sprint.annotations;
+package com.sprint.annotations.parameter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

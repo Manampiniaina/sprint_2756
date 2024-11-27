@@ -12,10 +12,10 @@ import java.util.List;
 
 import org.reflect.JReflect;
 
-import com.sprint.annotations.Entity;
-import com.sprint.annotations.FormName;
-import com.sprint.annotations.RequestFile;
-import com.sprint.annotations.RequestParam;
+import com.sprint.annotations.parameter.Entity;
+import com.sprint.annotations.parameter.FormName;
+import com.sprint.annotations.parameter.RequestFile;
+import com.sprint.annotations.parameter.RequestParam;
 import com.sprint.exception.ConvertException;
 import com.sprint.exception.SprintException;
 import com.sprint.framework.MySession;
@@ -110,12 +110,21 @@ public class MappingHelper {
     		String paramName=getParamNameForm(parameter , field);
     		for (String requestParam : paramServletTab) {
     			if(paramName.equals(requestParam)) {
-    			   	Method setter = JReflect.isExistSetter(clazz, field.getName());
-					if(setter!=null){
-						String valueRequest=req.getParameter(paramName);
-						Object setValue=ConvertUtil.toObjectWithClass(valueRequest, field.getType());
-						setter.invoke(obj, setValue);
+//    			   	Method setter = JReflect.isExistSetter(clazz, field.getName());
+					String valueRequest=req.getParameter(paramName);
+					if(CheckUtil.checkFieldValue(field , valueRequest)){
+						field.setAccessible(true);
+						field.set(obj, ConvertUtil.toObjectWithClass(valueRequest, field.getType()));
 					}
+
+//					if(setter!=null){
+//						String valueRequest=req.getParameter(paramName);
+//						Object setValue=ConvertUtil.toObjectWithClass(valueRequest, field.getType());
+//						setter.invoke(obj, setValue);
+//					}
+//					else{
+//						throw new ConvertException("Field with name "+ paramName+ " and in :"+clazz.getName() +"  must have a getter and setter");
+//					}
 				}
 			}
 		}

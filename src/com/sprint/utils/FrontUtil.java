@@ -1,10 +1,10 @@
 package com.sprint.utils;
 
-import com.sprint.annotations.AnnotationController;
-import com.sprint.annotations.FormName;
-import com.sprint.annotations.Get;
-import com.sprint.annotations.Post;
-import com.sprint.annotations.Url;
+import com.sprint.annotations.controller.AnnotationController;
+import com.sprint.annotations.parameter.FormName;
+import com.sprint.annotations.method.Get;
+import com.sprint.annotations.method.Post;
+import com.sprint.annotations.method.Url;
 
 import com.sprint.objects.Mapping;
 
@@ -32,14 +32,7 @@ public class FrontUtil {
 	    html.append("</body></html>");
 	    return html.toString();
 	}
-	public static int countEnumeration(Enumeration<String> enumerations) {
-		int count=0;
-		while(enumerations.hasMoreElements()) {
-			enumerations.nextElement();
-			count++;
-		}
-		return count;
-	}
+
     public static Class<?>[] getListControllers(String packagePath ){
         JReflect reflect = new JReflect(packagePath,null);
         Set<Class<?>> classes= reflect.getTypesAnnotatedWith(AnnotationController.class);
@@ -85,7 +78,6 @@ public class FrontUtil {
                 HashMap<String, String> hashurl =new HashMap<String, String>();
                 hashurl.put("verb", verb);
                 hashurl.put("url", url);
-                System.out.println("url:"+hashurl.get("url") + " verb:"+hashurl.get("verb"));
                 if(!isRepeat(hashurl, urls_check)){
                     urls_check.add(hashurl);
                     if(mapping.containsKey(url)){
@@ -132,14 +124,6 @@ public class FrontUtil {
         }
         return count;
     }
-    public static String getAddDispactcher(String url){
-        int count=FrontUtil.countChar('/', url) ;
-        String addDispat="";
-        for (int i = 0; i < count; i++) {
-            addDispat+="../";
-        }
-        return (addDispat);
-    }
 
     public static String getMetaUrl(String url){
         String[] splits=url.split("/" , 3);
@@ -150,11 +134,6 @@ public class FrontUtil {
         }
         return url;
     }
-    public static String getFormName(Field field) {
-    	if(field.isAnnotationPresent(FormName.class)) {
-    		return field.getAnnotation(FormName.class).value(); 		
-    	}
-    	return field.getName();
-    }
+
 }
 

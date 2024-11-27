@@ -1,4 +1,4 @@
-package com.sprint.annotations;
+package com.sprint.annotations.controller;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,4 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface RestAPI {}
+public @interface AnnotationController {
+    }
+

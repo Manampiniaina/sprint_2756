@@ -46,8 +46,8 @@ public class FrontHelper {
             url=FrontUtil.getMetaUrl(url);
             Mapping map = FrontUtil.getMapping(url , getFrontcontroller().getAllMapping());
             getFrontcontroller().setMapping(map);
-            
         }
-    }	   
+    }
+
     
 }

@@ -1,4 +1,4 @@
-package com.sprint.annotations;
+package com.sprint.annotations.parameter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface Entity {
-    String value();
+@Target(ElementType.FIELD)
+public @interface FormName {
+	String value();
 }

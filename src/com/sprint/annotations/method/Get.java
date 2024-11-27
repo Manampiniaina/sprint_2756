@@ -1,4 +1,4 @@
-package com.sprint.annotations;
+package com.sprint.annotations.method;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,5 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface AnnotationController {
-    }
-
+@Target(ElementType.METHOD)
+public @interface Get {}
