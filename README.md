@@ -1,33 +1,33 @@
 # **SPRINT FRAMEWORK - ETU002476**
 
-## 🏁 Sprint 0
+## Sprint 0
 
-**🎯 Objectif :**  
+** Objectif :**  
 Créer un servlet qui réceptionne toutes les requêtes clients et les traite.
 
-**✅ Côté Framework :**
+** Côté Framework :**
 - Création d'un servlet `FrontController` dont la méthode `processRequest` affiche l'URL courante.
 
 ---
 
-## 🚀 Sprint 1
+##  Sprint 1
 
 ### **🛠 Modifications dans le Framework :**
 1. Création d'une annotation `@Controller`
 2. Annotation des classes contrôleurs avec `@Controller`
 3. Regroupement des contrôleurs dans un même package
 
-### **🔁 Modifications dans `FrontController` :**
+### ** Modifications dans `FrontController` :**
 - Récupération du nom du package contenant les contrôleurs
 - Vérification si les contrôleurs sont déjà scannés :
-  - ✅ Oui : Affichage de la liste des contrôleurs
-  - ❌ Non : Scan et affichage de la liste des contrôleurs
+  -  Oui : Affichage de la liste des contrôleurs
+  -  Non : Scan et affichage de la liste des contrôleurs
 
 ---
 
-## 🔗 Sprint 2
+##  Sprint 2
 
-**🎯 Objectif :**  
+** Objectif :**  
 Associer une URL à une classe et une méthode spécifique.
 
 ### **Étapes :**
@@ -49,9 +49,9 @@ Associer une URL à une classe et une méthode spécifique.
 
 ---
 
-## ⚙️ Sprint 3
+##  Sprint 3
 
-**🎯 Objectif :**  
+** Objectif :**  
 Exécuter la méthode correspondant à une URL.
 
 ### **Étapes :**
@@ -63,9 +63,9 @@ Exécuter la méthode correspondant à une URL.
 
 ---
 
-## 🔄 Sprint 4
+##  Sprint 4
 
-**🎯 Objectif :**  
+** Objectif :**  
 Envoyer des données du contrôleur vers la vue.
 
 ### **Étapes :**
@@ -82,27 +82,27 @@ Envoyer des données du contrôleur vers la vue.
 
 ---
 
-## 🧱 Sprint 5
+## Sprint 5
 
-**🎯 Objectif :**  
+** Objectif :**  
 Gérer les exceptions du framework.
 
 ### **Étapes :**
 
-#### 🧪 Build time :
+####  Build time :
 - Erreur si :
   - Annotation dupliquée
   - Package de contrôleurs vide/inexistant
 
-#### 💥 Runtime :
+####  Runtime :
 - Erreur 404 si URL inconnue
 - Erreur si type de retour non reconnu (`ni String ni ModelView`)
 
 ---
 
-## 📩 Sprint 6
+##  Sprint 6
 
-**🎯 Objectif :**  
+** Objectif :**  
 Envoyer des données depuis la vue vers le contrôleur.
 
 ### **Étapes :**
@@ -117,9 +117,9 @@ Envoyer des données depuis la vue vers le contrôleur.
 
 ---
 
-## 🧍 Sprint 7
+##  Sprint 7
 
-**🎯 Objectif :**  
+** Objectif :**  
 Accepter des objets en paramètre de méthode et initialiser leurs attributs automatiquement.
 
 ### **Étapes :**
@@ -131,9 +131,9 @@ Accepter des objets en paramètre de méthode et initialiser leurs attributs aut
 
 ---
 
-## 🗂 Sprint 8
+##  Sprint 8
 
-**🎯 Objectif :**  
+** Objectif :**  
 Gérer et utiliser les sessions.
 
 ### **Étapes :**
